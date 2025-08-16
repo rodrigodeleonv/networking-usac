@@ -7,8 +7,6 @@
 - UV
 - Git
 
-
-
 ```bash
 # Install UV
 
@@ -25,3 +23,14 @@ echo 'eval "$(uvx --generate-shell-completion bash)"' >> ~/.bashrc
 uv init
 uv run which python
 ```
+
+## WSL2
+
+Mirrored mode networking: <https://learn.microsoft.com/en-us/windows/wsl/networking#mirrored-mode-networking>
+
+## References
+
+Asyncio server implementations
+
+- <https://poehlmann.dev/post/async-python-server/>
+- <https://superfastpython.com/asyncio-server/>

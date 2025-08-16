@@ -1,12 +1,21 @@
-"""Client for asyncio server"""
+"""Client for TCP server.
 
+Implementation using socket and blocking I/O
+"""
+
+import logging
 import socket
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def main(host: str, port: int):
     try:
         with socket.create_connection((host, port)) as s:
-            print(f"[CLIENT] Connected to {host}:{port}. Type text, 'quit' to exit.")
+            logger.info(
+                "[CLIENT] Connected to %s:%s. Type text, 'quit' to exit.", host, port
+            )
             local_ip, local_port = s.getsockname()[:2]
             while True:
                 try:
@@ -16,16 +25,16 @@ def main(host: str, port: int):
                 s.sendall((line + "\n").encode())
                 data = s.recv(4096)
                 if not data:
-                    print("[CLIENT] Server closed connection")
+                    logger.info("[CLIENT] Server closed connection")
                     break
                 msg = data.decode().rstrip()
-                print(f"({local_ip}:{local_port}): {msg}")
+                logger.info("(%s:%s): %s", local_ip, local_port, msg)
                 if line.strip().lower() in ("quit", "exit"):
                     break
     except KeyboardInterrupt:
         pass
     finally:
-        print("[CLIENT] Bye")
+        logger.info("[CLIENT] Bye")
 
 
 if __name__ == "__main__":

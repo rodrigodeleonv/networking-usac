@@ -1,19 +1,16 @@
-"""TCP Server implementation using asyncio
-
-https://superfastpython.com/asyncio-server/
-"""
+"""TCP Server implementation using asyncio"""
 
 import asyncio
 import logging
+from typing import Any
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-HOST = "127.0.0.1"
-PORT = 8888
 
-
-async def handler(reader, writer):
+async def handler_client(
+    reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+) -> None:
     """Echo back any data received from a single client connection.
 
     Responsibilities:
@@ -21,14 +18,14 @@ async def handler(reader, writer):
     - Echo back exactly what was received.
     - Handle graceful shutdown and logging per connection.
     """
-    peer = writer.get_extra_info("peername")
-    logger.info(f"[CLIENT] Connected: {peer}")
+    peer: Any = writer.get_extra_info("peername")
+    logger.info("[CLIENT] Connected: %s", peer)
     try:
         while True:
             data = await reader.readline()
             if not data:
                 # Client closed the write side
-                logger.info(f"[CLIENT] Disconnected: {peer}")
+                logger.info("[CLIENT] Disconnected: %s", peer)
                 break
 
             client_host, client_port = (
@@ -36,45 +33,51 @@ async def handler(reader, writer):
             )
 
             msg = data.decode(errors="replace").rstrip("\r\n")
-            logger.info(f"({client_host}:{client_port}): {msg}")
+            logger.info("(%s:%s): %s", client_host, client_port, msg)
 
             # Echo back
             writer.write(data)
             await writer.drain()
     except asyncio.CancelledError:
         # Task cancelled during server shutdown
-        logger.debug(f"[CLIENT] Cancelled: {peer}")
+        logger.debug("[CLIENT] Cancelled: %s", peer)
         raise
     except Exception as exc:
-        logger.exception(f"[CLIENT] Error with {peer}: {exc}")
+        logger.exception("[CLIENT] Error with %s: %s", peer, exc)
     finally:
         try:
             writer.close()
             await writer.wait_closed()
         finally:
-            logger.debug(f"[CLIENT] Writer closed: {peer}")
+            logger.debug("[CLIENT] Writer closed: %s", peer)
 
 
-async def main():
+async def run_server(host: str, port: int) -> None:
     """Main function"""
-    logger.info(f"Starting server on {HOST}:{PORT}")
+    logger.info("Starting TCP server on %s:%s", host, port)
+
     # Create TCP server async
-    server = await asyncio.start_server(handler, HOST, port=PORT)
-    logger.info(server)
-    # accept client connections forever (kill via control-c)
+    server: asyncio.AbstractServer = await asyncio.start_server(
+        handler_client, host, port=port
+    )
+    logger.info("Server started")
+    logger.info("accept client connections forever")
+
     try:
         await server.serve_forever()
     except KeyboardInterrupt:
-        logger.info("Close signal received")
+        logger.info("Server shutdown: signal received")
     finally:
         server.close()
         await server.wait_closed()
-        logger.info("[SERVER] Stopped")
+        logger.info("Server stopped")
 
 
 if __name__ == "__main__":
+    server: str = "0.0.0.0"
+    port: int = 8888
     try:
-        asyncio.run(main())
+        asyncio.run(run_server(server, port))
     except KeyboardInterrupt:
         # Suppress traceback on Ctrl+C during shutdown
-        print("[SERVER] exit")
+        logger.info("exit")
