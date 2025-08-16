@@ -1,0 +1,10 @@
+[project]
+name = "networking-usac"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "ruff>=0.12.9",
+    "isort>=5.12.0",
+]
