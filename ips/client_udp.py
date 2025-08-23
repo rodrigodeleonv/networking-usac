@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 def main(host: str, port: int) -> None:
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-            # Optional: connect to fix default remote address (allows send/recv)
             s.connect((host, port))
             local_ip, local_port = s.getsockname()[:2]
             logger.info(
